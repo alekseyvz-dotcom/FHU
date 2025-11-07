@@ -681,11 +681,28 @@ class App(tk.Tk):
             messagebox.showerror("Telegram", f"Не удалось отправить сообщение:\n{e}")
 
     def open_create_incident(self):
-        CreateIncidentDialog(self, self.cfg, self.storage, self.telegram, on_saved=None)
+        # передаём колбэк, чтобы реестр обновился после сохранения
+        CreateIncidentDialog(self, self.cfg, self.storage, self.telegram, on_saved=self.refresh_registry)
 
     def open_registry(self):
-        RegistryWindow(self, self.storage)
+        if self.registry is None or not self.registry.winfo_exists():
+            self.registry = RegistryWindow(self, self.storage)
+            self.registry.protocol("WM_DELETE_WINDOW", self._on_registry_close)
+        else:
+            self.registry.lift()
+            self.registry.focus_force()
 
+    def _on_registry_close(self):
+        try:
+            if self.registry:
+                self.registry.destroy()
+        finally:
+            self.registry = None
+
+    def refresh_registry(self):
+        if self.registry and self.registry.winfo_exists():
+            self.registry.refresh()
+            
     def open_locations_manager(self):
         LocationsManager(self, self.storage)
 
