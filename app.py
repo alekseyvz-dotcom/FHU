@@ -634,6 +634,8 @@ class App(tk.Tk):
         self.reporter = ReportGenerator(self.cfg)
         self.telegram = TelegramClient(self.cfg["telegram"]["token"], self.cfg["telegram"]["chat_id"])
 
+        self.registry = None
+
         self.home = HomeFrame(self, self.on_make_report)
         self.home.pack(fill="both", expand=True)
 
