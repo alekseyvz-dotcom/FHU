@@ -8,15 +8,16 @@ class ReportGenerator:
 
     def build_daily_report(self, df: pd.DataFrame) -> str:
         today = date.today()
+        title = f"Суточный отчёт за {today.strftime('%d.%m.%Y')}"
         if df is None or df.empty:
-            return f"Суточный отчёт за {today.strftime('%d.%m.%Y')}\nИнцидентов не зарегистрировано."
+            return f"{title}\nИнцидентов не зарегистрировано."
 
         if "date" in df.columns:
             day_df = df[df["date"] == today]
         else:
             day_df = df
 
-        lines = [f"Суточный отчёт за {today.strftime('%d.%m.%Y')}"]
+        lines = [title]
         if day_df.empty:
             lines.append("Инцидентов не зарегистрировано.")
         else:
@@ -24,5 +25,9 @@ class ReportGenerator:
                 t = row.get("time")
                 t_str = t.strftime("%H:%M") if pd.notna(t) and t else "-"
                 duty = row.get("duty","")
-                lines.append(f"- {t_str} | {row.get('type','?')} | {duty} | {row.get('description','')}")
+                loc = row.get("location","")
+                addr = row.get("address","")
+                status = row.get("status","")
+                extra = f" [{status}]" if status else ""
+                lines.append(f"- {t_str} | {row.get('type','?')} | {loc} / {addr} | {duty}{extra} | {row.get('description','')}")
         return "\n".join(lines)
