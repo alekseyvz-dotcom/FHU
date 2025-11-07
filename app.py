@@ -1,5 +1,6 @@
 # app.py
 import tkinter as tk
+import pandas as pd
 from tkinter import ttk, messagebox, simpledialog
 from datetime import datetime, date
 from typing import Optional
@@ -219,41 +220,41 @@ class RegistryWindow(tk.Toplevel):
         self.refresh()
 
     def refresh(self):
-        for i in self.tree.get_children():
-            self.tree.delete(i)
         try:
+            for i in self.tree.get_children():
+                self.tree.delete(i)
+
             df = self.storage.load_incidents()
+
+            f = self.var_filter_date.get().strip()
+            if f:
+                try:
+                    target = datetime.strptime(f, "%d.%m.%Y").date()
+                    df = df[df["date"] == target]
+                except ValueError:
+                    messagebox.showerror("Ошибка", "Неверный формат даты фильтра.")
+                    return
+
+            if df is not None and not df.empty:
+                df = df.sort_values(by=["date","time","id"], ascending=[False, False, False])
+                for _, r in df.iterrows():
+                    d = r.get("date")
+                    t = r.get("time")
+                    ra = r.get("resolved_at")
+                    self.tree.insert("", "end", values=(
+                        int(r.get("id")) if not pd.isna(r.get("id")) else "",
+                        d.strftime("%d.%m.%Y") if pd.notna(d) and d else "",
+                        t.strftime("%H:%M") if pd.notna(t) and t else "",
+                        r.get("location",""),
+                        r.get("address",""),
+                        r.get("duty",""),
+                        r.get("type",""),
+                        r.get("description",""),
+                        r.get("status",""),
+                        ra.strftime("%d.%m.%Y %H:%M") if pd.notna(ra) and ra else "",
+                    ))
         except Exception as e:
-            messagebox.showerror("Ошибка", f"Не удалось загрузить реестр:\n{e}")
-            return
-
-        f = self.var_filter_date.get().strip()
-        if f:
-            try:
-                target = datetime.strptime(f, "%d.%m.%Y").date()
-                df = df[df["date"] == target]
-            except ValueError:
-                messagebox.showerror("Ошибка", "Неверный формат даты фильтра.")
-                return
-
-        if df is not None and not df.empty:
-            df = df.sort_values(by=["date","time","id"], ascending=[False, False, False])
-            for _, r in df.iterrows():
-                d = r.get("date")
-                t = r.get("time")
-                ra = r.get("resolved_at")
-                self.tree.insert("", "end", values=(
-                    int(r.get("id")) if not pd.isna(r.get("id")) else "",
-                    d.strftime("%d.%m.%Y") if pd.notna(d) and d else "",
-                    t.strftime("%H:%M") if pd.notna(t) and t else "",
-                    r.get("location",""),
-                    r.get("address",""),
-                    r.get("duty",""),
-                    r.get("type",""),
-                    r.get("description",""),
-                    r.get("status",""),
-                    ra.strftime("%d.%m.%Y %H:%M") if pd.notna(ra) and ra else "",
-                ))
+            messagebox.showerror("Ошибка", f"Не удалось обновить реестр:\n{e}")
 
     def on_double_click(self, event):
         item = self.tree.focus()
