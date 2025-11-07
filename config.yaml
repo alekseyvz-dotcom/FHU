@@ -1,0 +1,19 @@
+telegram:
+  token: "YOUR_TELEGRAM_BOT_TOKEN"
+  chat_id: 123456789
+
+storage:
+  mode: "excel"   # excel | csv | yandex
+  excel_path: "data/report.xlsm"
+  yandex:
+    oauth_token: "YANDEX_OAUTH_TOKEN"
+    table_id: "YANDEX_TABLE_ID"
+
+mapping:
+  incidents_sheet: "Инциденты"
+  columns:
+    date: "Дата"
+    time: "Время"
+    duty: "Дежурный"
+    type: "Тип"
+    description: "Описание"
